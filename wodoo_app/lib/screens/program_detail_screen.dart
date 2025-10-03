@@ -53,27 +53,47 @@ class _ProgramDetailScreenState extends State<ProgramDetailScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAFC),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFB22B69),
+                Color(0xFF2889B8),
+              ],
             ),
-            child: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Color(0xFF2D3748),
-              size: 20,
+          ),
+        ),
+        leading: Container(
+          margin: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
+          child: GestureDetector(
+            onTap: () => Navigator.of(context).pop(),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.white,
+                size: 18,
+              ),
             ),
           ),
         ),
         title: Text(
           widget.program.title,
           style: const TextStyle(
-            color: Color(0xFF2D3748),
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w700,
           ),

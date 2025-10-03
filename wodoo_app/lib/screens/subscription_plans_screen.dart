@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
 import '../models/subscription_model.dart';
+import 'payment_screen.dart';
 
 class SubscriptionPlansScreen extends StatefulWidget {
   const SubscriptionPlansScreen({super.key});
@@ -113,7 +114,34 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> with 
     super.dispose();
   }
 
+  double _parsePrice(String priceString) {
+    // ₺829 -> 829.0
+    final cleanPrice = priceString.replaceAll(RegExp(r'[^\d.,]'), '');
+    return double.parse(cleanPrice.replaceAll(',', '.'));
+  }
+
   Future<void> _handleSubscriptionPurchase(String planId) async {
+    // Plan bilgilerini al
+    final plan = _plans.firstWhere((p) => p['id'] == planId);
+    
+    // Ödeme ekranına yönlendir
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => PaymentScreen(
+          subscriptionPlan: plan['name'],
+          amount: _parsePrice(plan['price']),
+          currency: 'TRY',
+        ),
+      ),
+    );
+
+    // Ödeme başarılıysa abonelik oluştur
+    if (result == true) {
+      await _createSubscription(planId);
+    }
+  }
+
+  Future<void> _createSubscription(String planId) async {
     if (mounted) {
       setState(() {
         _isLoading = true;
@@ -192,8 +220,6 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> with 
             ),
           ),
         );
-        
-        Navigator.of(context).pop();
       }
     } catch (e) {
       print('Abonelik hatası: $e');
@@ -275,6 +301,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> with 
       pinned: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
+      automaticallyImplyLeading: false,
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -296,7 +323,8 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> with 
               letterSpacing: 1,
             ),
           ),
-          titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+          centerTitle: true,
+          titlePadding: const EdgeInsets.only(bottom: 16),
         ),
       ),
     );

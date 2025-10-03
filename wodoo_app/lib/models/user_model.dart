@@ -27,9 +27,23 @@ class UserModel {
       photoURL: map['photoURL'],
       subscription: Subscription.fromMap(map['subscription'] ?? {}),
       preferences: UserPreferences.fromMap(map['preferences'] ?? {}),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
-      lastLoginAt: DateTime.fromMillisecondsSinceEpoch(map['lastLoginAt'] ?? 0),
+      createdAt: _parseDateTime(map['createdAt']),
+      lastLoginAt: _parseDateTime(map['lastLoginAt']),
     );
+  }
+
+  static DateTime _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now();
+    
+    if (dateValue is String) {
+      return DateTime.parse(dateValue);
+    } else if (dateValue is int) {
+      return DateTime.fromMillisecondsSinceEpoch(dateValue);
+    } else if (dateValue is DateTime) {
+      return dateValue;
+    }
+    
+    return DateTime.now();
   }
 
   Map<String, dynamic> toMap() {
@@ -86,11 +100,25 @@ class Subscription {
   factory Subscription.fromMap(Map<String, dynamic> map) {
     return Subscription(
       plan: map['plan'] ?? 'monthly',
-      startDate: DateTime.fromMillisecondsSinceEpoch(map['startDate'] ?? 0),
-      endDate: DateTime.fromMillisecondsSinceEpoch(map['endDate'] ?? 0),
+      startDate: _parseDateTime(map['startDate']),
+      endDate: _parseDateTime(map['endDate']),
       isActive: map['isActive'] ?? false,
       paymentId: map['paymentId'],
     );
+  }
+
+  static DateTime _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now();
+    
+    if (dateValue is String) {
+      return DateTime.parse(dateValue);
+    } else if (dateValue is int) {
+      return DateTime.fromMillisecondsSinceEpoch(dateValue);
+    } else if (dateValue is DateTime) {
+      return dateValue;
+    }
+    
+    return DateTime.now();
   }
 
   Map<String, dynamic> toMap() {

@@ -32,13 +32,27 @@ class SubscriptionModel {
         (e) => e.name == map['status'],
         orElse: () => SubscriptionStatus.expired,
       ),
-      startDate: DateTime.fromMillisecondsSinceEpoch(map['startDate'] ?? 0),
-      endDate: DateTime.fromMillisecondsSinceEpoch(map['endDate'] ?? 0),
+      startDate: _parseDateTime(map['startDate']),
+      endDate: _parseDateTime(map['endDate']),
       paymentId: map['paymentId'],
       amount: (map['amount'] ?? 0).toDouble(),
       currency: map['currency'] ?? 'TRY',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+      createdAt: _parseDateTime(map['createdAt']),
     );
+  }
+
+  static DateTime _parseDateTime(dynamic dateValue) {
+    if (dateValue == null) return DateTime.now();
+    
+    if (dateValue is String) {
+      return DateTime.parse(dateValue);
+    } else if (dateValue is int) {
+      return DateTime.fromMillisecondsSinceEpoch(dateValue);
+    } else if (dateValue is DateTime) {
+      return dateValue;
+    }
+    
+    return DateTime.now();
   }
 
   Map<String, dynamic> toMap() {

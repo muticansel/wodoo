@@ -5,11 +5,14 @@ import 'package:intl/intl.dart';
 import 'login_screen.dart';
 import 'main_lifts_screen.dart';
 import 'subscription_plans_screen.dart';
+import 'notification_settings_screen.dart';
 import '../services/subscription_service.dart';
 import '../models/user_model.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final VoidCallback? onNavigateToSubscription;
+  
+  const ProfileScreen({super.key, this.onNavigateToSubscription});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -210,6 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
       pinned: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
+      automaticallyImplyLeading: false,
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -231,7 +235,8 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
               letterSpacing: 1,
             ),
           ),
-          titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+          centerTitle: true,
+          titlePadding: const EdgeInsets.only(bottom: 16),
         ),
       ),
     );
@@ -290,7 +295,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
               child: Text(
                 _user!.displayName?.isNotEmpty == true
                     ? _user!.displayName![0].toUpperCase()
-                    : _user!.email![0].toUpperCase(),
+                    : (_user!.email?.isNotEmpty == true 
+                        ? _user!.email![0].toUpperCase() 
+                        : 'U'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 32,
@@ -466,11 +473,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           if (!_isSubscribed)
             GestureDetector(
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const SubscriptionPlansScreen(),
-                  ),
-                );
+                widget.onNavigateToSubscription?.call();
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -520,6 +523,19 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const MainLiftsScreen(),
+                ),
+              );
+            },
+          ),
+          _buildDivider(),
+          _buildMenuItem(
+            icon: Icons.notifications,
+            title: 'Bildirimler',
+            subtitle: 'Bildirim ayarları',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
                 ),
               );
             },
@@ -676,16 +692,16 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                       strokeWidth: 2,
                     ),
                   )
-                : const Row(
+                : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.logout,
                         color: Colors.white,
                         size: 20,
                       ),
-                      SizedBox(width: 12),
-                      Text(
+                      const SizedBox(width: 12),
+                      const Text(
                         'Çıkış Yap',
                         style: TextStyle(
                           color: Colors.white,

@@ -1,558 +1,589 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/program_provider.dart';
-import 'login_screen.dart';
-import 'subscription_screen.dart';
-import 'workout_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onNavigateToSubscription;
+  
+  const HomeScreen({super.key, this.onNavigateToSubscription});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+    
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+    
+    _fadeController.forward();
+    _slideController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        if (!authProvider.isAuthenticated) {
-          return const LoginScreen();
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Wodoo'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  Provider.of<ProgramProvider>(context, listen: false)
-                      .refreshPrograms();
-                },
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'logout') {
-                    _handleLogout(context, authProvider);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'logout',
-                    child: Text('Çıkış Yap'),
+    return Scaffold(
+          backgroundColor: const Color(0xFFF7FAFC),
+          body: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: CustomScrollView(
+                slivers: [
+                  // App Bar
+                  _buildAppBar(),
+                  
+                  // Content
+                  SliverPadding(
+                    padding: const EdgeInsets.all(20),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // Welcome Section
+                        _buildWelcomeSection(),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Features Section
+                        _buildFeaturesSection(),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Stats Section
+                        _buildStatsSection(),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // Equipment Section
+                        _buildEquipmentSection(),
+                        
+                        const SizedBox(height: 32),
+                        
+                        // CTA Section
+                        _buildCTASection(),
+                        
+                        const SizedBox(height: 32),
+                      ]),
+                    ),
                   ),
                 ],
               ),
-            ],
-          ),
-          body: IndexedStack(
-            index: _currentIndex,
-            children: const [
-              _HomeTab(),
-              _ProgramsTab(),
-              _ProfileTab(),
-            ],
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Ana Sayfa',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.fitness_center),
-                label: 'Programlar',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profil',
-              ),
-            ],
+            ),
           ),
         );
-      },
+  }
+
+  Widget _buildAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: false,
+      pinned: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFB22B69),
+              Color(0xFF2889B8),
+            ],
+          ),
+        ),
+        child: FlexibleSpaceBar(
+          title: const Text(
+            'Anasayfa',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
+          ),
+          centerTitle: true,
+          titlePadding: const EdgeInsets.only(bottom: 16),
+        ),
+      ),
     );
   }
 
-  void _handleLogout(BuildContext context, AuthProvider authProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Çıkış Yap'),
-        content: const Text('Çıkış yapmak istediğinizden emin misiniz?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('İptal'),
+  Widget _buildWelcomeSection() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFB22B69),
+            Color(0xFF2889B8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFB22B69).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await authProvider.signOut();
-            },
-            child: const Text('Çıkış Yap'),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Image.asset(
+                'assets/logo.png',
+                height: 200,
+                width: 200,
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Text(
+                  'Wodoo Programı',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Fitness tutkunları için özel olarak geliştirilmiş online antrenman programı. Her antrenman özenle planlanır ve fitness dünyasının temel unsurlarını içerir.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-class _HomeTab extends StatelessWidget {
-  const _HomeTab();
+  Widget _buildFeaturesSection() {
+    final features = [
+      {
+        'icon': Icons.trending_up,
+        'title': 'Fitness Seviyesi Artırma',
+        'description': 'Güç ve kuvvetinizi geliştirin, kondisyonunuzu en üst düzeye çıkarın',
+      },
+      {
+        'icon': Icons.emoji_events,
+        'title': 'Yarışma Hazırlığı',
+        'description': 'Fonksiyonel fitness performansını ölçen yarışmalara hazırlanın',
+      },
+      {
+        'icon': Icons.groups,
+        'title': 'Topluluk Entegrasyonu',
+        'description': 'Fitness topluluğuna entegre olun ve motivasyonunuzu artırın',
+      },
+      {
+        'icon': Icons.schedule,
+        'title': 'Haftalık Program',
+        'description': 'Haftada 5 gün, 12 haftalık sistematik antrenman programı',
+      },
+    ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Consumer2<AuthProvider, ProgramProvider>(
-      builder: (context, authProvider, programProvider, child) {
-        // Check subscription status
-        if (!authProvider.user!.subscription.isActive) {
-          return _buildSubscriptionRequired(context);
-        }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Özellikler',
+          style: TextStyle(
+            color: Color(0xFF2D3748),
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 20),
+        ...features.map((feature) => _buildFeatureCard(
+          icon: feature['icon'] as IconData,
+          title: feature['title'] as String,
+          description: feature['description'] as String,
+        )).toList(),
+      ],
+    );
+  }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Welcome Section
-              Text(
-                'Hoş geldin, ${authProvider.user!.displayName}!',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Bugünkü antrenmanınızı başlatmaya hazır mısınız?',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Today's Workouts
-              if (programProvider.currentProgram != null) ...[
-                Text(
-                  'Bugünkü Antrenmanlar',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                if (programProvider.todayWorkouts.isNotEmpty) ...[
-                  ...programProvider.todayWorkouts.map((workout) => 
-                    _buildWorkoutCard(context, workout)
-                  ),
-                ] else ...[
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.hotel,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Bugün dinlenme günü!',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Yarın yeni antrenmanlarınızı görebilirsiniz.',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[500],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
+  Widget _buildFeatureCard({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFB22B69),
+                  Color(0xFF2889B8),
                 ],
-              ] else ...[
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF2D3748),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
                   ),
-                  child: Column(
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsSection() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Program Detayları',
+            style: TextStyle(
+              color: Color(0xFF2D3748),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  number: '5',
+                  label: 'Gün/Hafta\nAntrenman',
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  number: '12',
+                  label: 'Hafta\nProgram',
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  number: '1.5-2',
+                  label: 'Saat\nSüre',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String number,
+    required String label,
+  }) {
+    return Column(
+      children: [
+        Text(
+          number,
+          style: const TextStyle(
+            color: Color(0xFFB22B69),
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEquipmentSection() {
+    final equipment = [
+      {'name': 'Kettlebell', 'icon': Icons.fitness_center},
+      {'name': 'Dumbell', 'icon': Icons.fitness_center},
+      {'name': 'Box', 'icon': Icons.crop_square},
+      {'name': 'Ergometre', 'icon': Icons.directions_run},
+      {'name': 'Olimpik Halter', 'icon': Icons.fitness_center},
+      {'name': 'Ağırlıklar', 'icon': Icons.fitness_center},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Kullanılan Ekipmanlar',
+            style: TextStyle(
+              color: Color(0xFF2D3748),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Çeşitli fitness ekipmanları ve makineleri kullanarak kapsamlı bir eğitim deneyimi sunar.',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: equipment.map((item) => _buildEquipmentItem(
+              name: item['name'] as String,
+              icon: item['icon'] as IconData,
+            )).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEquipmentItem({
+    required String name,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFB22B69),
+            Color(0xFF2889B8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 16,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCTASection() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2889B8),
+            Color(0xFFB22B69),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2889B8).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Kimler İçin Uygun?',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'En az 6-12 ay fonksiyonel fitness deneyimi olan katılımcılara yöneliktir. Olimpik halter tekniklerine ve fonksiyonel fitness hareketlerine aşina olan sporcular için ideal.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  widget.onNavigateToSubscription?.call();
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.fitness_center,
-                        size: 48,
-                        color: Colors.grey[400],
+                        color: Color(0xFF2889B8),
+                        size: 20,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(width: 12),
                       Text(
-                        'Henüz program yüklenmedi',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.grey[600],
+                        'Planları Keşfet',
+                        style: TextStyle(
+                          color: Color(0xFF2889B8),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Yeni programlar yüklendiğinde burada görünecek.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[500],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSubscriptionRequired(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.lock,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Abonelik Gerekli',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Antrenman programlarına erişmek için abonelik satın almanız gerekiyor.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const SubscriptionScreen(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-              ),
-              child: const Text('Abonelik Satın Al'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWorkoutCard(BuildContext context, workout) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: ListTile(
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            _getWorkoutIcon(workout.type.name),
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-        title: Text(
-          workout.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(workout.description),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(
-                  Icons.schedule,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  workout.duration,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Icon(
-                  Icons.trending_up,
-                  size: 16,
-                  color: Colors.grey[600],
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _getDifficultyText(workout.difficulty.name),
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => WorkoutDetailScreen(workout: workout),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  IconData _getWorkoutIcon(String type) {
-    switch (type) {
-      case 'wod':
-        return Icons.fitness_center;
-      case 'strength':
-        return Icons.fitness_center;
-      case 'metcon':
-        return Icons.speed;
-      case 'plyo':
-        return Icons.sports_gymnastics;
-      case 'accessory':
-        return Icons.sports_gymnastics;
-      default:
-        return Icons.fitness_center;
-    }
-  }
-
-  String _getDifficultyText(String difficulty) {
-    switch (difficulty) {
-      case 'beginner':
-        return 'Başlangıç';
-      case 'intermediate':
-        return 'Orta';
-      case 'advanced':
-        return 'İleri';
-      default:
-        return 'Başlangıç';
-    }
-  }
-}
-
-class _ProgramsTab extends StatelessWidget {
-  const _ProgramsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<ProgramProvider>(
-      builder: (context, programProvider, child) {
-        if (programProvider.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (programProvider.programs.isEmpty) {
-          return const Center(
-            child: Text('Henüz program bulunamadı'),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: programProvider.programs.length,
-          itemBuilder: (context, index) {
-            final program = programProvider.programs[index];
-            return Card(
-              margin: const EdgeInsets.only(bottom: 16),
-              child: ListTile(
-                leading: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.calendar_today,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-                title: Text(
-                  program.title,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  'Hafta ${program.weekNumber} - ${program.year}',
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  // Navigate to program detail
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        final user = authProvider.user!;
-        
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Profile Header
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundImage: user.photoURL != null
-                            ? NetworkImage(user.photoURL!)
-                            : null,
-                        child: user.photoURL == null
-                            ? const Icon(Icons.person, size: 40)
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        user.displayName,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user.email,
-                        style: TextStyle(color: Colors.grey[600]),
                       ),
                     ],
                   ),
                 ),
               ),
-              
-              const SizedBox(height: 16),
-              
-              // Subscription Status
-              Card(
-                child: ListTile(
-                  leading: Icon(
-                    user.subscription.isActive ? Icons.check_circle : Icons.cancel,
-                    color: user.subscription.isActive ? Colors.green : Colors.red,
-                  ),
-                  title: Text(
-                    user.subscription.isActive ? 'Aktif Abonelik' : 'Abonelik Yok',
-                  ),
-                  subtitle: user.subscription.isActive
-                      ? Text('${user.subscription.daysRemaining} gün kaldı')
-                      : const Text('Abonelik satın alın'),
-                  trailing: const Icon(Icons.arrow_forward_ios),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SubscriptionScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // Settings
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.language),
-                      title: const Text('Dil'),
-                      subtitle: Text(user.preferences.language == 'tr' ? 'Türkçe' : 'English'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        // Navigate to language settings
-                      },
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.notifications),
-                      title: const Text('Bildirimler'),
-                      subtitle: Text(user.preferences.notifications ? 'Açık' : 'Kapalı'),
-                      trailing: Switch(
-                        value: user.preferences.notifications,
-                        onChanged: (value) {
-                          // Update notification preference
-                        },
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.dark_mode),
-                      title: const Text('Tema'),
-                      subtitle: Text(user.preferences.theme == 'light' ? 'Açık' : 'Koyu'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        // Navigate to theme settings
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

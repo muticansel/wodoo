@@ -216,37 +216,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   Widget _buildHeader() {
     return Column(
       children: [
-        // Logo
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Color(0xFFF7FAFC),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.fitness_center,
-            size: 50,
-            color: Color(0xFFB22B69),
-          ),
-        ),
-        
-        const SizedBox(height: 24),
-        
         // Title
         const Text(
           'Wodoo',
@@ -261,13 +230,22 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
         const SizedBox(height: 8),
         
         Text(
-          'CrossFit Antrenman Programları',
+          'It Is Not Witchcraft!',
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
             fontSize: 16,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.5,
           ),
+        ),
+        
+        const SizedBox(height: 40),
+        
+        // Logo
+        Image.asset(
+          'assets/logo.png',
+          height: 400,
+          width: 400,
         ),
       ],
     );

@@ -8,7 +8,9 @@ import '../services/subscription_service.dart';
 import '../widgets/skeleton_loader.dart';
 
 class SimpleHomeScreen extends StatefulWidget {
-  const SimpleHomeScreen({super.key});
+  final VoidCallback? onNavigateToSubscription;
+  
+  const SimpleHomeScreen({super.key, this.onNavigateToSubscription});
 
   @override
   State<SimpleHomeScreen> createState() => _SimpleHomeScreenState();
@@ -142,9 +144,11 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> with TickerProvider
                   padding: const EdgeInsets.all(20),
                   sliver: _isLoading
                       ? _buildLoadingState()
-                      : _programs.isEmpty
-                          ? _buildEmptyState()
-                          : _buildProgramsList(),
+                      : !_isSubscribed
+                          ? _buildSubscriptionRequiredState()
+                          : _programs.isEmpty
+                              ? _buildEmptyState()
+                              : _buildProgramsList(),
                 ),
               ],
             ),
@@ -161,6 +165,7 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> with TickerProvider
       pinned: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
+      automaticallyImplyLeading: false,
       flexibleSpace: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -173,30 +178,17 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> with TickerProvider
           ),
         ),
         child: FlexibleSpaceBar(
-          title: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Wodoo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                ),
-              ),
-              Text(
-                'CrossFit Antrenman Programları',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.9),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          title: const Text(
+            'Program',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1,
+            ),
           ),
-          titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+          centerTitle: true,
+          titlePadding: const EdgeInsets.only(bottom: 16),
         ),
       ),
     );
@@ -383,11 +375,7 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> with TickerProvider
                     ),
                   );
                 } else {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const SubscriptionPlansScreen(),
-                    ),
-                  );
+                  widget.onNavigateToSubscription?.call();
                 }
               },
               borderRadius: BorderRadius.circular(24),
@@ -567,6 +555,198 @@ class _SimpleHomeScreenState extends State<SimpleHomeScreen> with TickerProvider
               color: color,
               fontSize: 12,
               fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionRequiredState() {
+    return SliverFillRemaining(
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Premium Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFB22B69),
+                      Color(0xFF2889B8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFB22B69).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.star,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Title
+              const Text(
+                'Premium Gerekli',
+                style: TextStyle(
+                  color: Color(0xFF2D3748),
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 12),
+              
+              // Description
+              Text(
+                'CrossFit antrenman programlarına erişmek için premium abonelik gereklidir. Tüm programlara sınırsız erişim ve özel özelliklerden yararlanın.',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Features
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    _buildFeatureItem('Tüm antrenman programları'),
+                    _buildFeatureItem('Otomatik ağırlık hesaplama'),
+                    _buildFeatureItem('İlerleme takibi'),
+                    _buildFeatureItem('Premium destek'),
+                    _buildFeatureItem('Reklamsız deneyim'),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Subscribe Button
+              Container(
+                width: double.infinity,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFB22B69),
+                      Color(0xFF2889B8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFB22B69).withOpacity(0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      widget.onNavigateToSubscription?.call();
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: const Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.star,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Premium\'a Geç',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: const Color(0xFF2889B8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.check,
+              color: Colors.white,
+              size: 12,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

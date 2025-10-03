@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'home_screen.dart';
 import 'simple_home_screen.dart';
 import 'profile_screen.dart';
 import 'subscription_plans_screen.dart';
@@ -95,6 +96,7 @@ class _MainNavigationState extends State<MainNavigation> with TickerProviderStat
     });
   }
 
+
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -104,13 +106,33 @@ class _MainNavigationState extends State<MainNavigation> with TickerProviderStat
   Widget _getCurrentScreen() {
     switch (_currentIndex) {
       case 0:
-        return const SimpleHomeScreen();
+        return HomeScreen(
+          onNavigateToSubscription: () {
+            setState(() {
+              _currentIndex = 2; // Abonelik tabına geç
+            });
+          },
+        );
       case 1:
-        return const SubscriptionPlansScreen();
+        return SimpleHomeScreen(
+          onNavigateToSubscription: () {
+            setState(() {
+              _currentIndex = 2; // Abonelik tabına geç
+            });
+          },
+        );
       case 2:
-        return const ProfileScreen();
+        return const SubscriptionPlansScreen();
+      case 3:
+        return ProfileScreen(
+          onNavigateToSubscription: () {
+            setState(() {
+              _currentIndex = 2; // Abonelik tabına geç
+            });
+          },
+        );
       default:
-        return const SimpleHomeScreen();
+        return const HomeScreen();
     }
   }
 
@@ -198,12 +220,18 @@ class _MainNavigationState extends State<MainNavigation> with TickerProviderStat
                 ),
                 _buildNavItem(
                   index: 1,
+                  icon: Icons.fitness_center_outlined,
+                  activeIcon: Icons.fitness_center,
+                  label: 'Program',
+                ),
+                _buildNavItem(
+                  index: 2,
                   icon: Icons.subscriptions_outlined,
                   activeIcon: Icons.subscriptions,
                   label: 'Abonelik',
                 ),
                 _buildNavItem(
-                  index: 2,
+                  index: 3,
                   icon: Icons.person_outline,
                   activeIcon: Icons.person,
                   label: 'Profil',

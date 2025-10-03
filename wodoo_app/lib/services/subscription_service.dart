@@ -6,6 +6,64 @@ class SubscriptionService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Abonelik oluşturur
+  static Future<void> createSubscription({
+    required String userId,
+    required String plan,
+    required String paymentId,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      // Check if user document exists
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      
+      if (userDoc.exists) {
+        // Update existing user
+        await _firestore.collection('users').doc(user.uid).update({
+          'subscription.plan': plan,
+          'subscription.isActive': true,
+          'subscription.startDate': DateTime.now().toIso8601String(),
+          'subscription.endDate': plan == 'monthly'
+              ? DateTime.now().add(const Duration(days: 30)).toIso8601String()
+              : plan == 'semi_annual'
+                  ? DateTime.now().add(const Duration(days: 180)).toIso8601String()
+                  : DateTime.now().add(const Duration(days: 365)).toIso8601String(),
+          'subscription.paymentId': paymentId,
+        });
+      } else {
+        // Create new user
+        final newUser = UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+          displayName: user.displayName ?? '',
+          subscription: Subscription(
+            plan: plan,
+            isActive: true,
+            startDate: DateTime.now(),
+            endDate: plan == 'monthly'
+                ? DateTime.now().add(const Duration(days: 30))
+                : plan == 'semi_annual'
+                    ? DateTime.now().add(const Duration(days: 180))
+                    : DateTime.now().add(const Duration(days: 365)),
+          ),
+          preferences: UserPreferences(
+            language: 'tr',
+            notifications: true,
+            theme: 'light',
+            mainLifts: const {},
+          ),
+          createdAt: DateTime.now(),
+          lastLoginAt: DateTime.now(),
+        );
+        await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
+      }
+    } catch (e) {
+      throw Exception('Abonelik oluşturulamadı: $e');
+    }
+  }
+
   /// Kullanıcının abonelik durumunu kontrol eder
   static Future<bool> isUserSubscribed() async {
     final user = _auth.currentUser;

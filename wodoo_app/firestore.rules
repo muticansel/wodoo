@@ -22,5 +22,15 @@ service cloud.firestore {
       allow read, write: if request.auth != null && 
         resource.data.userId == request.auth.uid;
     }
+    
+    // Kullanıcı bildirimleri sadece sahibi görebilir
+    match /users/{userId}/notifications/{notificationId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Kullanıcı kişisel rekorları sadece sahibi görebilir
+    match /users/{userId}/personalRecords/{recordId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }
