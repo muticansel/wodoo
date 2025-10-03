@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Kullanıcılar sadece kendi verilerine erişebilir
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Programlar herkes okuyabilir ve yazabilir (geçici olarak)
+    match /programs/{programId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Kullanıcı antrenmanları sadece sahibi görebilir
+    match /user_workouts/{workoutId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+    
+    // Abonelik bilgileri sadece sahibi görebilir
+    match /subscriptions/{subscriptionId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+    }
+  }
+}
